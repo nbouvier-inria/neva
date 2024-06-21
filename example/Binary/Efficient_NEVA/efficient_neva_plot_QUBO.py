@@ -12,10 +12,10 @@ from typing import List, Tuple
 """
 Parameters
 """
-pb= "uf200-06"
+pb= "gka4e" # "uf200-06"
 
 # Import benchmark instances as a numpy array
-sat = cnf_to_sat(f"SAT/uf200-860/{pb}.cnf")
+Q = sparse_to_array(f"gka_sparse_all/{pb}.sparse")  # sat = cnf_to_sat(f"SAT/uf200-860/{pb}.cnf")
 # Number of individuals
 N = 64
 # Interaction graph
@@ -23,14 +23,14 @@ V, E =  torus(N) # ring_one_way(N)
 # Number of step to wait before combining again
 s = 5  
 # Dimension of the problem
-D = 200
+D = Q.shape[0] # 200 for sat example
 
 # True for memetic neva, False for regular neva and None for personnalisation
 memetic = False
 # Optionnal figure name if memetic is None
 figname= f"No_mutation_{pb}_N={N}_D={D}"
 # Binary problem to solve
-problem = lambda x : evaluate(sat, x)
+problem = lambda x: QUBO_Value(Q, x) # lambda x : evaluate(sat, x) for sat example
 # Method for combining solutions
 combination = lambda x, y: combine1(x, y)  
 # Method for mutating
@@ -48,7 +48,7 @@ End of Parameters
 if __name__ == "__main__":
     begin = time.time()
     print("Running...")
-    d = CGA_simple(
+    d = efficient_neva(
         V=V,
         E=E,
         k=k,
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         probe=True,
     )
     end = time.time()
-    print("Computation time : ", round(end-begin, 2) , "s")
+    print("Computation time : ", end-begin)
     plt.figure(figsize=(10, 8))
     plt.plot([max([d[i][j] for i in V]) for j in range(num_steps)])
     plt.plot([np.average([d[i][j] for i in V]) for j in range(num_steps)])
@@ -70,15 +70,13 @@ if __name__ == "__main__":
     plt.ylabel("Max(X)|E(F(X))")
     plt.tight_layout()
     if memetic is None:
-        f = figname
+        plt.savefig(figname)
     elif memetic:
-        f = f"graphs/NEVA_Memetic_Max(X)|E(F(X))_{pb}_N={N}_D={D}"
+        plt.savefig(f"graphs/NEVA_Memetic_Max(X)|E(F(X))_{pb}_N={N}_D={D}")
     else:
-        f = f"graphs/NEVA_Max(X)|E(F(X))_{pb}_N={N}_D={D}"
-    plt.savefig(f)
-    print(f"Figure saved at {f}")
+        plt.savefig(f"graphs/NEVA_Max(X)|E(F(X))_{pb}_N={N}_D={D}")
     # for i in V:
     #     plt.plot(d[i])
     # print(max([problem(d) for d in CGA_simple(V, E, k, max_period=max_period, Combine=combination, Mutate=mutate, f=problem, num_steps=num_steps)]))
     # plt.show()
-    print("Best found solution:", max([v[num_steps - 1] for v in d]))
+    print(max([v[num_steps - 1] for v in d]))

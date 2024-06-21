@@ -18,7 +18,7 @@ from lava.magma.core.process.variable import Var
 from lava.magma.core.process.ports.ports import InPort, OutPort
 import numpy as np
 import matplotlib.pyplot as plt
-from neva.QUBO_tools import QUBO_Value, sparse_to_array, QUBO_annealing
+from neva.tools.QUBO_tools import QUBO_Value, sparse_to_array, QUBO_annealing
 from typing import Dict, List, Tuple
 plt.style.use("fivethirtyeight")
 

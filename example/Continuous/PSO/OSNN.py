@@ -18,7 +18,7 @@ from lava.magma.core.process.ports.ports import InPort, OutPort
 import numpy as np
 from math import cos, sin, isclose, pi
 import matplotlib.pyplot as plt
-from benchmarks import rastrigin, quadratic, cigar, happycat, levy, weierstrass
+from neva.tools.benchmarks import rastrigin, quadratic, cigar, happycat, levy, weierstrass
 plt.style.use("fivethirtyeight")
 from PSO import PSO
 

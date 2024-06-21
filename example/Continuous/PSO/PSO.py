@@ -1,6 +1,6 @@
 
 import numpy as np
-from benchmarks import rastrigin, quadratic, pi, cigar, happycat, levy, weierstrass
+from neva.tools.benchmarks import rastrigin, quadratic, pi, cigar, happycat, levy, weierstrass
 import matplotlib.pyplot as plt
     # """
     # Parameters
