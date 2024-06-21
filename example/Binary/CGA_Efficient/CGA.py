@@ -5,8 +5,8 @@ Algorithm for optimization with matrices
 
 import numpy as np
 import matplotlib.pyplot as plt
-from ...tools.QUBO_tools import QUBO_Value, sparse_to_array
-from src.tools.SAT_Tools import cnf_to_sat, evaluate
+from neva.tools.QUBO_tools import QUBO_Value, sparse_to_array
+from neva.tools.SAT_Tools import cnf_to_sat, evaluate
 from typing import Dict, List, Tuple
 import time
 
@@ -255,9 +255,10 @@ def CGA_simple(V:List[int], E:List[Tuple[int, int]], k:int,  f, num_steps:int, D
 if __name__ == "__main__":
     begin = time.time()
     d = CGA_simple(
-        V,
-        E,
-        k,
+        V=V,
+        E=E,
+        k=k,
+        D=D,
         max_period=max_period,
         Combine=combination,
         Mutate=mutate,

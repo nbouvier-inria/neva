@@ -1,7 +1,7 @@
-from neva.QUBO_tools import sparse_to_array, QUBO_Value
+from neva.tools.QUBO_tools import sparse_to_array, QUBO_Value
 from CGA import CGA_simple, torus, combine1, mutate1, mutate3, simple_annealing, ring_one_way, grid
 import numpy as np
-from src.tools.SAT_Tools import cnf_to_sat, evaluate
+from neva.tools.SAT_Tools import cnf_to_sat, evaluate
 """
 Parameters
 """
