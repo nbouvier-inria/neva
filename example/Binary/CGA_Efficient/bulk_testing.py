@@ -1,5 +1,5 @@
-from neva.tools.QUBO_tools import sparse_to_array, QUBO_Value
-from CGA import CGA_simple, torus, combine1, mutate1, mutate3, simple_annealing, ring_one_way, grid
+from neva.tools.QUBO_tools import simulated_annealing, sparse_to_array, QUBO_Value
+from neva.binary.efficient_neva import CGA_simple, torus, combine1, mutate1, mutate3, ring_one_way, grid
 import numpy as np
 from neva.tools.SAT_Tools import cnf_to_sat, evaluate
 """
@@ -45,7 +45,7 @@ for j in range(1):
                 probe=False,
                 D=D
             )
-        sa.append(simple_annealing(problem, D, num_steps, lambda x: x))
+        sa.append(simulated_annealing(problem, D, num_steps, lambda x: x))
         m = max([problem(d) for d in d])
         datas.append(m)
 print(f"{round(np.average(datas))}$\pm${round(np.std(datas))} & {round(np.average(sa))}$\pm${round(np.std(sa))} \\\\") # & {round(np.average(sa), 1)}$\pm${round(np.std(sa), 1)}")

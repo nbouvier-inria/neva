@@ -15,6 +15,10 @@ def bound(f: float, a: float, b: float) -> float:
     return min(max(f, a), b)
 
 def sparse_to_array(filename: str) -> np.ndarray:
+    """
+    Reads out a .sparse QUBO file and converts
+    it to a numpy array
+    """
     mat = open(filename, "r")
     n, m = [int(i) for i in mat.readline().split(' ')]
     Q = np.zeros((n,n))
@@ -40,22 +44,21 @@ def partitionning_to_QUBO(p: np.ndarray) -> np.ndarray:
     m = q.sum()
     return p - np.matmul(np.transpose(q), q)/m
 
-Q = np.array([[0, 1, 0, 1, 1],
-              [1, 0, 1, 0, 0],
-              [0, 1, 0, 1, 0],
-              [1, 0, 1, 0, 0],
-              [1, 0, 0, 0, 0]], dtype=bool)
-
 def QUBO_random_solver(Q: np.ndarray, n: int) -> float:
+    """
+    Randomly picks n vectors and returns the best
+    QUBO value found
+    """
     maxi = -float("inf")
     s = (Q.shape[0], )
     for _ in range(n):
         maxi = max(QUBO_Value(Q, np.random.random(size=s)<=0.5), maxi)
     return maxi
 
-def QUBO_annealing(Q: np.ndarray, n: int, temperature):
+def QUBO_annealing(Q: np.ndarray, n: int, temperature=lambda x:x):
     """
-    Returns the best QUBO value in O(n³) time
+    Returns an approached maximum QUBO value
+    using 
     """
     N = Q.shape[0]
     s = np.random.random((N, )) <= 0.5
@@ -70,3 +73,40 @@ def QUBO_annealing(Q: np.ndarray, n: int, temperature):
             s = snew
             e = enew
     return e
+
+
+def simulated_annealing(problem, D:int, n: int, temperature=lambda x:x, s:np.ndarray=None, historic:bool=False):
+    """
+    Simulated annealing implementation for maximisation
+    -----------
+    problem : Function to maximize
+    D : Dimension of the problem
+    n : Number of steps to run the annealing for
+    temperature : [0,1] -> [0,1] Temperature used for annealing
+    s : Starting point
+    historic : If set to to true, returns a list of all best found values at
+    each time step
+    """
+    tout = []
+    if s is None:
+        s = np.random.random((D,)) <= 0.5
+    e = problem(s)
+    smax = s
+    emax = e
+    for k in range(n):
+        T = temperature(1 - k / n)
+        k = np.random.randint(0, D)
+        snew = s.copy()
+        snew[k] = False if s[k] else True
+        enew = problem(snew)
+        if np.random.random() <= (1 if enew > e else np.exp(-(e - enew) / T)):
+            s = snew
+            e = enew
+        if enew > emax:
+            smax = snew
+            emax = enew
+        tout.append(emax)
+    if historic:
+        return tout
+    else:
+        return emax

@@ -72,36 +72,11 @@ def grid(n: int) -> Tuple[List[int], List[Tuple[int, int]]]:
     return V, E
 
 
-def simple_annealing(problem, D, n: int, temperature, s=None, historic=False):
-    """
-    Returns the best QUBO value in O(n³) time
-    """
-    tout = []
-    if s is None:
-        s = np.random.random((D,)) <= 0.5
-    e = problem(s)
-    smax = s
-    emax = e
-    for k in range(n):
-        T = temperature(1 - k / n)
-        k = np.random.randint(0, D)
-        snew = s.copy()
-        snew[k] = False if s[k] else True
-        enew = problem(snew)
-        if np.random.random() <= (1 if enew > e else np.exp(-(e - enew) / T)):
-            s = snew
-            e = enew
-        if enew > emax:
-            smax = snew
-            emax = enew
-        tout.append(emax)
-    if historic:
-        return tout
-    else:
-        return emax
-
-
 def torus(n: int) -> Tuple[List[int], List[Tuple[int, int]]]:
+    """
+    Square orus-shaped graph (V, E) of
+    less than n vertices
+    """
     n = int(np.sqrt(n))
     V = [i for i in range(n**2)]
     E = []
@@ -115,33 +90,6 @@ def torus(n: int) -> Tuple[List[int], List[Tuple[int, int]]]:
             E.append((i + n * j, i + n * (j + 1)))
     return V, E
 
-
-"""
-Parameters
-"""
-
-pb= "gka4e" # "uf200-06"
-Q = sparse_to_array(f"gka_sparse_all/{pb}.sparse")  # Import benchmark instances as a numpy array
-# sat = cnf_to_sat(f"SAT/uf200-860/{pb}.cnf")
-N = 64
-V, E =  torus(N) # ring_one_way(N)
-probe = 0
-s = 5  # Number of step to wait before combining again
-D = Q.shape[0] # 200
-figname= f"No_mutation_{pb}_N={N}_D={D}"
-memetic = False # None to enable figname over automatic
-problem = lambda x: QUBO_Value(Q, x) # evaluate(sat, x)  # Binary problem to solve
-combination = lambda x, y: combine1(x, y)  # Method for combining solutions
-mutate = lambda x: mutate1(x, k=(5/100)*D) # if not memetic else (mutate1(x, k=np.log(D)) if np.random.random() >= 0.1 else mutate3(x, Q, 1))  # simple_annealing(Q, 200, temperature=lambda x:x**2, s=x)                          # Method for mutating
-num_steps = 200  # Number of steps to run the swarm for
-k = 4  # Max range for waiting time
-max_period = 5  # Period before the particle starts mutating
-f0 = (lambda x: x)  # mutate3(x, Q, 50)                     # Initialisation of positionning
-p_err = 0  # Probability of combining even if the rsult will be less
-
-"""
-End of Parameters
-"""
 
 
 def run_spk(k, N, s_c, s_d, tau, t, r, datas, tau_max, Combine, Mutate, f):
@@ -252,37 +200,4 @@ def CGA_simple(V:List[int], E:List[Tuple[int, int]], k:int,  f, num_steps:int, D
         return datas
 
 
-if __name__ == "__main__":
-    begin = time.time()
-    d = CGA_simple(
-        V=V,
-        E=E,
-        k=k,
-        D=D,
-        max_period=max_period,
-        Combine=combination,
-        Mutate=mutate,
-        f=problem,
-        num_steps=num_steps,
-        probe=True,
-    )
-    end = time.time()
-    print(end-begin)
-    plt.figure(figsize=(10, 8))
-    plt.plot([max([d[i][j] for i in V]) for j in range(num_steps)])
-    plt.plot([np.average([d[i][j] for i in V]) for j in range(num_steps)])
-    plt.plot(simple_annealing(problem, D, num_steps, lambda x: x, historic=True))
-    plt.xlabel("Time steps")
-    plt.ylabel("Max(X)|E(F(X))")
-    plt.tight_layout()
-    if memetic is None:
-        plt.savefig(figname)
-    elif memetic:
-        plt.savefig(f"graphs/NEVA_Memetic_Max(X)|E(F(X))_{pb}_N={N}_D={D}")
-    else:
-        plt.savefig(f"graphs/NEVA_Max(X)|E(F(X))_{pb}_N={N}_D={D}")
-    # for i in V:
-    #     plt.plot(d[i])
-    # print(max([problem(d) for d in CGA_simple(V, E, k, max_period=max_period, Combine=combination, Mutate=mutate, f=problem, num_steps=num_steps)]))
-    # plt.show()
-    print(max([v[num_steps - 1] for v in d]))
+
