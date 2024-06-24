@@ -27,8 +27,7 @@ def mutate3(x: np.ndarray, Q: np.ndarray, n: int):
         return mutate3(mutate2(x, Q), Q, n - 1)
     else:
         return x
-
-
+    
 def dist(x: np.ndarray, y: np.ndarray):
     D = x.shape[0]
     diff = 0

@@ -3,7 +3,6 @@ Implementation of a Cellular Genetic
 Algorithm for optimization
 """
 import time
-from lava.proc.dense.process import Dense
 from lava.proc.monitor.process import Monitor
 from lava.magma.core.run_conditions import RunSteps
 from lava.magma.core.run_configs import Loihi1SimCfg
@@ -18,87 +17,16 @@ from lava.magma.core.process.variable import Var
 from lava.magma.core.process.ports.ports import InPort, OutPort
 import numpy as np
 import matplotlib.pyplot as plt
-from neva.QUBO_tools import QUBO_Value, sparse_to_array, QUBO_annealing
+from neva.tools.QUBO_tools import QUBO_Value, sparse_to_array, QUBO_annealing
+from neva.tools.CGA_tools import grid, mutate1, combine1, dist
 from typing import Dict, List, Tuple
 from math import sqrt
 plt.style.use("fivethirtyeight")
 
-def mutate1(x: np.ndarray, k: int=1):
-    """
-    Random uniform k bitflips 
-    """
-    return np.logical_xor(x, (np.random.random(x.shape) <= k/x.shape[0]))
-
-def mutate2(x: np.ndarray, Q: np.ndarray):
-    """
-    One step of the naive QUBO solving algorithm
-    """
-    return np.minimum(np.ones(x.shape), np.maximum(np.zeros(x.shape),np.matmul(Q, x)))
-
-def mutate3(x: np.ndarray, Q: np.ndarray, n:int):
-    """
-    n steps of the naive QUBO solving algorithm
-    """
-    if n > 0:
-        return mutate3(mutate2(x, Q), Q, n-1)
-    else:
-        return x
-
-def dist(x: np.ndarray, y: np.ndarray):
-    D = x.shape[0]
-    diff = 0
-    for i in range(D):
-        if x[i] != y[i]:
-            diff +=1
-    return diff / D * 100
-
-
-
-def ring_one_way(n: int) -> Tuple[List[int], List[Tuple[int, int]]]:
-    V = [i for i in range(n)]
-    E = [(0,n-1)]
-    for i in range(n-1):
-        E.append((i, i+1))
-    return (V, E)
-
-def grid(n: int) -> Tuple[List[int], List[Tuple[int, int]]]:
-    n = int(sqrt(n))
-    V = [i for i in range(n**2)]
-    E = []
-    for i in range(n-1):
-        E.append((i + n*(n-1), i + 1 + n*(n-1)))
-        E.append((n-1 + n*(i), n-1 + n*(i+1)))
-        for j in range(n-1):
-            E.append((i + n*j, i + n*j +1))
-            E.append((i + n*j, i + n*(j +1)))
-    return V, E
-
-def simple_annealing(Q: np.ndarray, n: int, temperature, s = None):
-    """
-    Returns the best QUBO value in O(n³) time
-    """
-    N = Q.shape[0]
-    if s is None:
-        s = np.random.random((N, )) <= 0.5
-    e = QUBO_Value(Q, s)
-    smax = s
-    emax = e
-    for k in range(n):
-        T = temperature(1-k/n)
-        k = np.random.randint(0, N)
-        snew = s.copy()
-        snew[k] = False if s[k] else True
-        enew = QUBO_Value(Q, snew)
-        if np.random.random() <= (1 if enew > e else np.exp(-(e - enew)/T)):
-            s = snew
-            e = enew
-        if enew > emax:
-            smax = snew
-            emax = enew
-    return smax
 
 """
 Parameters
+"""
 """
 Q = sparse_to_array('gka_sparse_all/gka4e.sparse')
 k = 64
@@ -116,20 +44,23 @@ max_period = 5                                       # Period before the particl
 f0 = lambda x:  x #mutate3(x, Q, 50)                     # Initialisation of positionning
 p_err = 0                                           # Probability of combining even if the rsult will be less
 """
+"""
 End of Parameters
 """
 
 
-class Particle(AbstractProcess):
+class particleNeva(AbstractProcess):
     """
-    Particle for CGA implementation
+    Particle for NEVA implementation
     f port: Ports for signaling the efficiency of
     the current solution
     data port: Ports for sending datas to
     neghbours
-    start: Initial position for the particle
-    shape: Shape of the particle
-    stand: Maximum waiting time between combinations
+    start : Initial position for the particle
+    shape : Shape of the particle
+    stand : Maximum waiting time between combinations
+    seed : For now, particles need to be seeded
+    num : Identification of the particle
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -139,6 +70,7 @@ class Particle(AbstractProcess):
         seed = kwargs.get("seed", 0)
         num = kwargs.get("num", 0)
 
+        self.problem = lambda x:x
         self.shape = shape
         self.seed = Var(shape=(1,), init=seed)
         self.f_a_in = InPort(shape=(1,))
@@ -155,7 +87,7 @@ class Particle(AbstractProcess):
         self.zeros = Var(shape=shape, init=np.zeros(shape=shape))
 
 
-@implements(proc=Particle, protocol=LoihiProtocol)
+@implements(proc=particleNeva, protocol=LoihiProtocol)
 @requires(CPU)
 class PyParticlefModel(PyLoihiProcessModel):
     f_a_in: PyInPort = LavaPyType(PyInPort.VEC_DENSE, int)
@@ -214,40 +146,31 @@ class PyParticlefModel(PyLoihiProcessModel):
                 print(f"{self.time_step} iteration...")
 
 
-
-
-def connect(a: Particle, b:Particle):
+def connect(a: particleNeva, b:particleNeva):
     a.f_s_out.connect(b.f_a_in)
     a.data_s_out.connect(b.data_a_in)
     b.f_s_out.connect(a.f_a_in)
     b.data_s_out.connect(a.data_a_in)
 
-def combine1(x: np.ndarray, y: np.ndarray):
+def parralellNeva(V, E, num_steps, problem, D, k:int=4, max_period:int=5, f0=lambda x:x, probe=0):
     """
-    Uniform random combination
+    Computes the NEVA algorithm ending datas in an array through regular matrices
+    ------------------
+    V : Set of all vertices, must be {0,...,N-1}
+    E : Set of all ridges in the interaction graph
+    k : Waiting time after successfull combination
+    Combine : Array[bool] * Array[bool] -> Array[bool] Function used for combining solutions
+    Mutate : Array[bool] -> Array[bool] Function used for mutating solutions
+    f0 : Array[bool] -> Array[bool] Function used for choosing starting population
+    problem : Array[bool] -> float Function to optimize
+    max_period : Period before the neuron starts mutating
+    D : int Dimensionnality of the problem
+    probe : int 
     """
-    m = np.random.random(x.shape) < 0.5
-    return x * m + y * (1-m)
-
-def combine2(x: np.ndarray, y: np.ndarray):
-    """
-    One point combination
-    """
-    m = int(np.random.random() * x.shape[0])
-    retour = np.zeros(x.shape)
-    for i in range(m):
-        retour[i] = x[i]
-    for i in range(m, x.shape[0]):
-        retour[i] = y[i]
-    return retour
-
-
-
-if __name__ == "__main__":
     run_condition = RunSteps(num_steps=num_steps)
     run_cfg = Loihi1SimCfg()
     m = [Monitor() for v in V]
-    particles = [Particle(start=f0(np.random.random(size=(D,)) <= 0.5), shape=(D,), stand=s, seed=np.random.randint(1000000000), num=v) for v in V]
+    particles = [particleNeva(start=f0(np.random.random(size=(D,)) <= 0.5), shape=(D,), stand=k, seed=np.random.randint(1000000000), num=v) for v in V]
     for (u, v) in E:
         connect(particles[u], particles[v])
     
@@ -258,9 +181,8 @@ if __name__ == "__main__":
     data = [m[v].get_data() for v in V]
     particles[probe].stop()
     end = time.time()
-    print("Stop.")
     plt.figure(figsize=(10,8))
-    print(end - start)
+    print("Computation time : ", round(end-start, 3))
     [plt.plot([problem(i) for i in [data[v][i] for i in data[v]][0]['data']]) for v in V]
     x_final = [[data[v][i] for i in data[v]][0]['data'][num_steps - 1] for v in V]
     print(max([problem(x) for x in x_final]))

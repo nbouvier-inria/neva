@@ -1,5 +1,5 @@
 from neva.tools.QUBO_tools import simulated_annealing, sparse_to_array, QUBO_Value
-from neva.binary.efficient_neva import efficient_neva, torus, combine1, mutate1, mutate3, ring_one_way, grid
+from neva.binary.nonParrallelNeva import nonParrallelNeva, torus, combine1, mutate1, mutate3, ring_one_way, grid
 import numpy as np
 from neva.tools.SAT_Tools import cnf_to_sat, evaluate
 """
@@ -33,7 +33,7 @@ for j in range(1):
     sa = []
     for i in range(test_cases):
         print("Running test case", i)
-        d = efficient_neva(
+        d = nonParrallelNeva(
                 V,
                 E,
                 k,

@@ -41,7 +41,7 @@ def run_spk(k, N, s_c, s_d, tau, t, r, datas, tau_max, Combine, Mutate, f):
         s_c[n] = 0
         s_d[n] = np.zeros(datas[0].shape)
 
-def efficient_neva(V:List[int], E:List[Tuple[int, int]], k:int,  f, num_steps:int, D: int, max_period:int=5, Combine=combine1, Mutate=mutate1,  probe:bool=False):
+def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: int, k:int=4, max_period:int=5, Combine=combine1, Mutate=mutate1,  probe:bool=False):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
