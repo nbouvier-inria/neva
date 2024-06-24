@@ -1,3 +1,8 @@
+"""
+An example script for solving QUBO using only
+one SNN, given that each vertex corresponds to 
+a neuron
+"""
 from lava.proc.monitor.process import Monitor
 from lava.magma.core.run_conditions import RunSteps
 from lava.magma.core.run_configs import Loihi1SimCfg
@@ -11,25 +16,44 @@ from lava.magma.core.model.py.type import LavaPyType
 from lava.magma.core.process.variable import Var
 from lava.magma.core.process.ports.ports import InPort, OutPort, RefPort, VarPort
 import numpy as np
-from neva.QUBO_tools import QUBO_Value, sparse_to_array, bound, QUBO_annealing
+from neva.tools.QUBO_tools import QUBO_Value, sparse_to_array, bound, QUBO_annealing
 from matplotlib import pyplot as plt
+
+"""
+Parameters
+"""
+# Q = np.array([[0, 5, 0, -3, 7],
+#           [5, 0, -1, 0, 0],
+#           [0, -1, 0, -2, 0],
+#           [-3, 0, -2, 0, 0],
+#           [7, 0, 0, 0, 0]], dtype=int)
+Q = sparse_to_array('../gka_sparse_all/gka5c.sparse') # QUBO matrix to solve
+N = Q.shape[0]  # Number of neurons = dimension of the problem
+dv = 0.1        # Inverse of decay time-constant for voltage decay.
+vth = 5         # Neuron threshold voltage, exceeding which, the neuron will spike.
+num_steps = 500 # Number of steps to run the algorith for
+beta = np.power(1/N, 1/num_steps) # Constant probability of spiking noise decay factor (If set to 1, there is no decay)
+minV = None     # mINIMUM MEMBRANE VOLTAGE VALUE
+
+"""
+End of parameters
+"""
 
 
 class MyLIF(AbstractProcess):
-    """Leaky-Integrate-and-Fire (LIF) neural Process.
-    LIF dynamics abstracts to:
-    u[t] = u[t-1] * (1-du) + a_in              # neuron current
-    v[t] = v[t-1] * (1-dv) + u[t] + bias_mant  # neuron voltage
-    s_out = v[t] > vth                         # spike if threshold is exceeded
-    v[t] = 0                                   # reset at spike
-    Parameters
+    """ Specialized QUBO LIF for solving 
+    QUBO instances
     ----------
-    du: Inverse of decay time-constant for current decay.
     dv: Inverse of decay time-constant for voltage decay.
-    bias: Neuron bias.
     vth: Neuron threshold voltage, exceeding which, the neuron will spike.
     initial_spike: First fired iteration, used to overwrite the neurons with a
     best-found solution
+    initial_position : Binary array with a 1 at the neuron position (For N neurons,
+    neuron k has an expected array np.eye(1, N, k))
+    neighbours : Array containing the weight of all synapses going to a neighbour of
+    the neuron
+    minV : Minimum value for V
+    seed : For now, processes need to be seeded
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -147,26 +171,6 @@ class PyMediatorModel(PyLoihiProcessModel):
 
 if __name__ == "__main__" :
 
-    """
-    Parameters
-    """
-    # Q = np.array([[0, 5, 0, -3, 7],
-    #           [5, 0, -1, 0, 0],
-    #           [0, -1, 0, -2, 0],
-    #           [-3, 0, -2, 0, 0],
-    #           [7, 0, 0, 0, 0]], dtype=int)
-    Q = sparse_to_array('gka_sparse_all/gka5c.sparse')
-    N = Q.shape[0]
-    dv = 0.1
-    vth = 5
-    num_steps = 500
-    beta = np.power(1/N, 1/num_steps)
-    minV = None
-
-    """
-    End of parameters
-    """
-
     print("Creating monitor...")
     moni1 = Monitor()
     moni2 = Monitor()
@@ -202,6 +206,6 @@ if __name__ == "__main__" :
     plt.plot(historique)
     historique = [i for i in datas2["medi"]["current"]]
     plt.plot(historique)
-    print(datas["medi"]["best"][num_steps - 1])
-    print(QUBO_annealing(Q, 10000, lambda x: x))
+    print("Best found solution:", datas["medi"]["best"][num_steps - 1])
+    print("Best found solution with an annealing equivalent:", QUBO_annealing(Q, 10000, lambda x: x))
     plt.show()

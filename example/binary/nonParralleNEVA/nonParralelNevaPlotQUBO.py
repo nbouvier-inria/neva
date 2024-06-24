@@ -1,3 +1,7 @@
+"""
+An example scipt for plotting results
+on QUBO instances
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from neva.binary.nonParrallelNeva import *

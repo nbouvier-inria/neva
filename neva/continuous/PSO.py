@@ -1,4 +1,6 @@
-
+"""
+An implementation of the PSO algorithm
+"""
 import numpy as np
 from neva.tools.benchmarks import rastrigin, quadratic, pi, cigar, happycat, levy, weierstrass
 import matplotlib.pyplot as plt

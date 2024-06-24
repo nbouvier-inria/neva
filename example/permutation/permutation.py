@@ -1,6 +1,7 @@
 """
-Adaptation of Solving Constraint Satisfaction Problems with Networks of Spiking Neurons
-\r\nZeno Jonke&#x;Zeno Jonke†Stefan Habenschuss&#x;Stefan Habenschuss†Wolfgang Maass*Wolfgang Maass*
+Approximative implementation of :
+Solving Constraint Satisfaction Problems with Networks of Spiking Neurons
+Zeno Jonke, Stefan Habenschuss and Wolfgang Maass
 """
 from lava.proc.lif.process import LIF
 from lava.proc.dense.process import Dense

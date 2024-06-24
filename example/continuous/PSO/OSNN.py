@@ -1,7 +1,13 @@
 """
-This file implements a swarm search with oscillating
+This example implements a swarm search with oscillating
 spiking neural networks (OSSNs) to find the maximum
-of a given function 'f'. 
+of a given function 'f'. An equivalent PSO algorithm
+is implemented in PSO.py file. See for more details :
+Swarm intelligence algorithm based on
+spiking neural-oscillator networks,
+coupling interactions and search
+performances
+Tomoyuki Sasakiand Hidehiro Nakano
 """
 from lava.proc.monitor.process import Monitor
 from lava.magma.core.run_conditions import RunSteps
@@ -20,7 +26,7 @@ from math import cos, sin, isclose, pi
 import matplotlib.pyplot as plt
 from neva.tools.benchmarks import rastrigin, quadratic, cigar, happycat, levy, weierstrass
 plt.style.use("fivethirtyeight")
-from PSO import PSO
+from neva.continuous.PSO import PSO
 
 """
 Parameters
@@ -29,8 +35,8 @@ N = 10                                                      # Number of particle
 D = 7                                                       # Problem's dimension
 x0 = np.array([(np.random.random()-0.5)*2 for i in range(D)])
 f = lambda x: -weierstrass(x, x0)                           # Function to maximise
-name = "Weierstrass"
-figure = []                                          # phase, maxf, maxfpso
+name = "Weierstrass"                                # Figure name for saving
+figure = []                                          # Figure to plot, can be : phase, maxf, maxfpso, yoft
 
 start = np.array([(np.random.random(D)-0.5)*4 for i in range(N)])     # Starting points for the swarm
 delta = 1.4                                                 # Damping factor
@@ -233,7 +239,7 @@ if __name__ == "__main__":
         plt.xlabel("Deviation y")
         plt.ylabel("Deviation speed v")
         plt.tight_layout()
-        plt.savefig(f"graphs/OSNN_v|y_{name}_N={N}_D={D}")
+        plt.savefig(f"../graphs/OSNN_v|y_{name}_N={N}_D={D}")
         plt.close()
     if "maxf" in figure:
         plt.figure(figsize=(10,8))
@@ -243,7 +249,7 @@ if __name__ == "__main__":
         plt.xlabel("Number of step")
         plt.ylabel("Max(f(X)) / E(f(X))")
         plt.tight_layout()
-        plt.savefig(f"graphs/OSNN_Max(X)|E(F(X))_{name}_N={N}_D={D}")
+        plt.savefig(f"../graphs/OSNN_Max(X)|E(F(X))_{name}_N={N}_D={D}")
         plt.close()
     if "maxfpso" in figure:
         plt.figure(figsize=(10,8))
@@ -253,7 +259,7 @@ if __name__ == "__main__":
         plt.xlabel("Number of step")
         plt.ylabel("Max(f(X)) / E(f(X))")
         plt.tight_layout()
-        plt.savefig(f"graphs/PSO_Max(X)|E(F(X))_{name}_N={N}_D={D}")
+        plt.savefig(f"../graphs/PSO_Max(X)|E(F(X))_{name}_N={N}_D={D}")
         plt.close()
     if "yoft" in figure:
         plt.figure(figsize=(10,8))
@@ -262,6 +268,6 @@ if __name__ == "__main__":
         plt.xlabel("Deviation y")
         plt.ylabel("Time t")
         plt.tight_layout()
-        plt.savefig(f"graphs/OSNN_t|y_{name}_N={N}_D={D}")
+        plt.savefig(f"../graphs/OSNN_t|y_{name}_N={N}_D={D}")
         plt.close()
 

@@ -18,7 +18,7 @@ from lava.magma.core.process.ports.ports import InPort, OutPort
 import numpy as np
 import matplotlib.pyplot as plt
 from neva.tools.QUBO_tools import QUBO_Value, sparse_to_array, QUBO_annealing
-from neva.tools.CGA_tools import grid, mutate1, combine1, dist
+from neva.tools.CGA_tools import grid, mutate1, combine1, dist, torus
 from typing import Dict, List, Tuple
 from math import sqrt
 plt.style.use("fivethirtyeight")
@@ -27,28 +27,24 @@ plt.style.use("fivethirtyeight")
 """
 Parameters
 """
-"""
-Q = sparse_to_array('gka_sparse_all/gka4e.sparse')
-k = 64
-V, E = grid(k)
+
+Q = sparse_to_array('../gka_sparse_all/gka4e.sparse') # QUBO matrix
+N = 16
+V, E = torus(N)
 probe = 0
-s = 5                                                # Number of step to wait before combining again                 
+k = 5                                                # Number of step to wait before combining again                 
 D = Q.shape[0]
 problem = lambda x: QUBO_Value(Q, x)                   # Binary problem to solve
-combination = lambda x, y: combine1(x, y)              # Method for combining solutions
+combine = lambda x, y: combine1(x, y)              # Method for combining solutions
 mutate = lambda x: mutate1(x, k=5) # if np.random.random() >= 0.2 else mutate3(x, Q, 5) # simple_annealing(Q, 200, temperature=lambda x:x**2, s=x)                          # Method for mutating
 figure = []                                         
 num_steps = 200                                       # Number of steps to run the swarm for
 p = 4                                               # Max range for random period augmentation (Should be changed only for higher degree networks)
 max_period = 5                                       # Period before the particle starts mutating
-f0 = lambda x:  x #mutate3(x, Q, 50)                     # Initialisation of positionning
-p_err = 0                                           # Probability of combining even if the rsult will be less
-"""
+
 """
 End of Parameters
 """
-
-
 class particleNeva(AbstractProcess):
     """
     Particle for NEVA implementation
@@ -70,7 +66,6 @@ class particleNeva(AbstractProcess):
         seed = kwargs.get("seed", 0)
         num = kwargs.get("num", 0)
 
-        self.problem = lambda x:x
         self.shape = shape
         self.seed = Var(shape=(1,), init=seed)
         self.f_a_in = InPort(shape=(1,))
@@ -103,7 +98,6 @@ class PyParticlefModel(PyLoihiProcessModel):
     seed: int = LavaPyType(int, int)
     num: int = LavaPyType(int, int)
     zeros: np.ndarray = LavaPyType(np.ndarray, bool)
-
     def run_spk(self):
         if self.first_iteration:
             self.f_s_out.send(np.array([False]))
@@ -132,27 +126,21 @@ class PyParticlefModel(PyLoihiProcessModel):
                 self.tick -=1
 
             if self.stand_tick <= 0 and f == 1: # and problem(data) >= problem(self.data): # TODO: Choose the data to combine with probalistically
-                new = combination(data, self.data)
+                new = combine(data, self.data)
                 if problem(new) > problem(self.data):
                     self.data = new
                     self.period = 0
-                elif gen.random() < p_err:
-                    self.data = new
-                self.stand_tick = int(gen.random() * self.stand)
+                    self.stand_tick = int(gen.random() * self.stand)
             elif self.stand_tick > 0:
                 self.stand_tick -= 1
-
+            
             if self.num == 1:
                 print(f"{self.time_step} iteration...")
 
 
-def connect(a: particleNeva, b:particleNeva):
-    a.f_s_out.connect(b.f_a_in)
-    a.data_s_out.connect(b.data_a_in)
-    b.f_s_out.connect(a.f_a_in)
-    b.data_s_out.connect(a.data_a_in)
 
-def parralellNeva(V, E, num_steps, problem, D, k:int=4, max_period:int=5, f0=lambda x:x, probe=0):
+
+def parralellNeva(V, E, num_steps, problem,D, mutate=mutate1, combine=combine1,  k:int=4, max_period:int=5, f0=lambda x:x, probe=0):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -167,6 +155,13 @@ def parralellNeva(V, E, num_steps, problem, D, k:int=4, max_period:int=5, f0=lam
     D : int Dimensionnality of the problem
     probe : int 
     """
+    
+    def connect(a: particleNeva, b:particleNeva):
+        a.f_s_out.connect(b.f_a_in)
+        a.data_s_out.connect(b.data_a_in)
+        b.f_s_out.connect(a.f_a_in)
+        b.data_s_out.connect(a.data_a_in)
+
     run_condition = RunSteps(num_steps=num_steps)
     run_cfg = Loihi1SimCfg()
     m = [Monitor() for v in V]
@@ -175,18 +170,22 @@ def parralellNeva(V, E, num_steps, problem, D, k:int=4, max_period:int=5, f0=lam
         connect(particles[u], particles[v])
     
     [m[v].probe(particles[v].data, num_steps=num_steps) for v in V]
-    print("Running...")
-    start = time.time()
     particles[probe].run(run_cfg=run_cfg, condition=run_condition)
     data = [m[v].get_data() for v in V]
     particles[probe].stop()
+    return data
+
+if __name__ == "__main__":
+    print("Running...")
+    start = time.time()
+    data = parralellNeva(V=V, E=E, num_steps=num_steps, problem=problem, D=D, k=k, max_period=max_period)
     end = time.time()
     plt.figure(figsize=(10,8))
     print("Computation time : ", round(end-start, 3))
     [plt.plot([problem(i) for i in [data[v][i] for i in data[v]][0]['data']]) for v in V]
     x_final = [[data[v][i] for i in data[v]][0]['data'][num_steps - 1] for v in V]
-    print(max([problem(x) for x in x_final]))
-    print(np.average([dist(x_final[0], x) for x in x_final]))
-    print(QUBO_annealing(Q, num_steps*20, lambda x:x))
+    print("Found solution:", max([problem(x) for x in x_final]))
+    # print(np.average([dist(x_final[0], x) for x in x_final]))
+    print("Solution with the same number of step on an annealing algorithm: ", QUBO_annealing(Q, num_steps*20, lambda x:x))
     plt.show()
     

@@ -9,6 +9,10 @@ next batch.
 Once temperature is low enough, the best found solution
 is returned, and compared to other classical solutions
 to compute QUBO.
+For more information, see :
+Neuromorphic Swarm on RRAM Compute-in-Memory Processor
+for Solving QUBO Problem
+Ashwin Sanjay Lele et al.
 """
 
 from lava.proc.lif.process import LIF
@@ -26,9 +30,57 @@ from lava.magma.core.model.py.type import LavaPyType
 from lava.magma.core.process.variable import Var
 from lava.magma.core.process.ports.ports import InPort, OutPort
 import numpy as np
-from neva.QUBO_tools import QUBO_Value, sparse_to_array, bound, QUBO_random_solver, QUBO_annealing
+from neva.tools.QUBO_tools import QUBO_Value, sparse_to_array, bound, QUBO_random_solver, QUBO_annealing
 from math import exp, log
 from random import choice
+import matplotlib.pyplot as plt
+plt.style.use('_mpl-gallery')
+
+"""
+List of parameters
+"""
+
+# QUBO problem to solve
+Q = sparse_to_array('../gka_sparse_all/gka3f.sparse')
+N = Q.shape[0]
+
+# Number of steps computed on the SNNs
+num_steps = 30
+
+# Number of neighbourhood explorations
+num_explos = int(log(N))
+
+# Number of SNN that runs in parrallel
+num_SNN = int(log(N))
+
+# Threshold for the neuron to send out a spike
+Vth = 1
+
+# Leakage term
+Dv = 0.1
+
+# Uniform combination of result
+combination = True
+
+# Temperature for choosing potential exploration points
+T = [1-i/num_explos for i in range(num_explos)]
+
+# Probability of giving out spikes based on iteration
+E = [1/((i+1)) for i in range(num_explos)]
+
+# Spiking efficiency. Needs to be put in comparison with
+# the highest/average weighted degree of Q's vertices
+P = [1000 for i in range(num_explos)]
+
+# Constant decay of spike probability during exploration
+beta = 0.99
+
+# Minimal value for V, set to None by default
+minV = None
+
+"""
+End of parameters
+"""
 
 class SpikeGenerator(AbstractProcess):
     """
@@ -150,36 +202,7 @@ class PyMyLifModel(PyLoihiProcessModel):
             self.v[s_out] = 0  # Reset voltage to 0
             self.s_out.send(s_out)
 
-def Parrallel(Q, num_steps = 50, num_explos = 5, num_SNN = 5, Vth = 1, Dv =0.1, combination = True, melange = lambda x:x, temperature = lambda x:x, beta = 1, minV = None):
-    """
-    Time: O(d² + n*e*d)
-    Process: O(d*s) 
-    (where e = num_explos, s = num_snn, n = num_steps, d = dimension)
-    """
-
-    
-    N = Q.shape[0]
-
-
-    # Temperature for choosing potential exploration points
-    T = [temperature(1-i/num_explos) for i in range(num_explos)]
-
-    # Probability of giving out spikes based on iteration
-    E = [melange(1-i/num_explos) for i in range(num_explos)]
-
-    # Spiking efficiency. Needs to be put in comparison with
-    # the highest/average weighted degree of Q's vertices
-    P = [1000 for i in range(num_explos)]
-
-    # Constant decay of spike probability during exploration
-    beta = 0.99
-
-    # Minimal value for V, set to None by default
-    minV = None
-
-    """
-    End of parameters
-    """
+if __name__ == "__main__":
 
     x = [np.linspace(num_steps*i, num_steps*(i+1), num_steps) for i in range(num_explos)]
 
@@ -192,7 +215,7 @@ def Parrallel(Q, num_steps = 50, num_explos = 5, num_SNN = 5, Vth = 1, Dv =0.1, 
     t = [0 for _ in range(num_SNN)]
     t_formation = [gb for _ in range(num_SNN)]
 
-    print("Running Parrallel SNNs...")
+
     for k in range(num_explos):
 
         # Finding a new set of SNNs based on current temperature
@@ -268,13 +291,12 @@ def Parrallel(Q, num_steps = 50, num_explos = 5, num_SNN = 5, Vth = 1, Dv =0.1, 
             gb = t_formation[m]
         
 
-        # print("The maximum found at step", k+1, "is", maxi)
+        print("The maximum found at step", k+1, "is", maxi)
 
         [lif[j].stop() for j in range(num_SNN)]
-    print("Stop.")
-    return maxi
 
-    # print("The maximum found with a random equivalent is", QUBO_random_solver(Q, num_explos*num_SNN*num_steps*100))
+
+    print("The maximum found with a random equivalent is", QUBO_random_solver(Q, num_explos*num_SNN*num_steps*N))
 
     # Possible temperature function :  lambda x : x, lanbda x : x**2, lambda x : log(1+x)/log(2)
-    #print("The maximum found with an annealing equivalent is", QUBO_annealing(Q, num_explos*num_SNN*num_steps*N, lambda x : x))
+    print("The maximum found with an annealing equivalent is", QUBO_annealing(Q, num_explos*num_SNN*num_steps*N, lambda x : x))

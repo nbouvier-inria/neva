@@ -1,3 +1,8 @@
+"""
+An example scipt for plotting results
+on SAT instances
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from neva.binary.nonParrallelNeva import *

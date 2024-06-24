@@ -1,6 +1,6 @@
 import numpy as np
 from math import cos, pi
-import benchmarksbis as bs
+import neva.tools.benchmarksbis as bs
 
 def weierstrass(x: np.ndarray, x0: np.ndarray):
     w = bs.Weierstrass(shift=x0)

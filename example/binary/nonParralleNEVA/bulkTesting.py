@@ -1,5 +1,11 @@
+"""
+An example scipt for running bulk
+tests on the NEVA algorithm
+"""
+
 from neva.tools.QUBO_tools import simulated_annealing, sparse_to_array, QUBO_Value
-from neva.binary.nonParrallelNeva import nonParrallelNeva, torus, combine1, mutate1, mutate3, ring_one_way, grid
+from neva.binary.nonParrallelNeva import nonParrallelNeva
+from neva.tools.CGA_tools import torus, combine1, mutate1, mutate3, ring_one_way, grid
 import numpy as np
 from neva.tools.SAT_Tools import cnf_to_sat, evaluate
 """
@@ -8,11 +14,10 @@ Parameters
 
 pb= "gka2d"
 # Q = sparse_to_array(f"gka_sparse_all/{pb}.sparse")  # Import benchmark instances as a numpy array
-sat = cnf_to_sat(f"SAT/uf200-860/uf200-06.cnf")
+sat = cnf_to_sat(f"../SAT/uf200-860/uf200-06.cnf")
 N = 25
 V, E =  torus(N) # ring_one_way(N)
 config = "Torus"
-probe = 0
 s = 5  # Number of step to wait before combining again
 D = 200 # Q.shape[0]
 memetic = False
@@ -34,9 +39,9 @@ for j in range(1):
     for i in range(test_cases):
         print("Running test case", i)
         d = nonParrallelNeva(
-                V,
-                E,
-                k,
+                V=V,
+                E=E,
+                k=k,
                 max_period=max_period,
                 Combine=combination,
                 Mutate=mutate,
@@ -48,7 +53,7 @@ for j in range(1):
         sa.append(simulated_annealing(problem, D, num_steps, lambda x: x))
         m = max([problem(d) for d in d])
         datas.append(m)
-print(f"{round(np.average(datas))}$\pm${round(np.std(datas))} & {round(np.average(sa))}$\pm${round(np.std(sa))} \\\\") # & {round(np.average(sa), 1)}$\pm${round(np.std(sa), 1)}")
+print(f"{round(np.average(datas))}$\pm${round(np.std(datas))}, {round(np.average(sa))}$\pm${round(np.std(sa))} \\\\") # & {round(np.average(sa), 1)}$\pm${round(np.std(sa), 1)}")
 
     
 
