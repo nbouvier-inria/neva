@@ -31,16 +31,12 @@ s = 5
 # Dimension of the problem
 D = 200
 
-# True for memetic neva, False for regular neva and None for personnalisation
-memetic = False
-# Optionnal figure name if memetic is None
-figname= f"../No_mutation_{pb}_N={N}_D={D}"
 # Binary problem to solve
 problem = lambda x : evaluate(sat, x)
 # Method for combining solutions
 combination = lambda x, y: combine1(x, y)  
 # Method for mutating
-mutate = lambda x: mutate1(x, k=(5/100)*D) if not memetic else (mutate1(x, k=np.log(D)) if np.random.random() >= 0.1 else mutate3(x, Q, 1)) 
+mutate = lambda x: mutate1(x, k=(5/100)*D)
 
 num_steps = 1000  # Number of steps to run the swarm for
 k = 4  # Max range for waiting time
@@ -75,12 +71,7 @@ if __name__ == "__main__":
     plt.xlabel("Time steps")
     plt.ylabel("Max(X)|E(F(X))")
     plt.tight_layout()
-    if memetic is None:
-        f = figname
-    elif memetic:
-        f = f"../graphs/NEVA_Memetic_Max(X)|E(F(X))_{pb}_N={N}_D={D}"
-    else:
-        f = f"../graphs/NEVA_Max(X)|E(F(X))_{pb}_N={N}_D={D}"
+    f = f"../graphs/NEVA_Max(X)|E(F(X))_{pb}_N={N}_D={D}"
     plt.savefig(f)
     print(f"Figure saved at {f}")
     # for i in V:

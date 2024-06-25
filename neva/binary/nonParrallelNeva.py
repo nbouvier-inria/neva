@@ -41,7 +41,7 @@ def run_spk(k, N, s_c, s_d, tau, t, r, datas, tau_max, Combine, Mutate, f):
         s_c[n] = 0
         s_d[n] = np.zeros(datas[0].shape)
 
-def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: int, k:int=4, max_period:int=5, Combine=combine1, Mutate=mutate1,  probe:bool=False):
+def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: int, k:int=4, max_period:int=5, Combine=combine1, Mutate=mutate1,  probe:bool=False, f0=lambda x:x):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -54,6 +54,7 @@ def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: 
     max_period : Period before the neuron starts mutating
     D : Dimensionnality of the problem
     probe : If set to True, CGA_simple now returns all computed datas at all time
+    f0 : Array[bool] -> Array[bool] Function applied to the first instance
     """
     N = graph_to_N(E, V)
     s_c = [0 for _ in V]
@@ -61,7 +62,7 @@ def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: 
     tau = [0 for _ in V]
     t = [0 for _ in V]
     r = [0 for _ in V]
-    datas = [np.random.random(size=(D,)) <= 0.5 for _ in V]
+    datas = [f0(np.random.random(size=(D,)) <= 0.5) for _ in V]
     if probe:
         d = [[] for _ in V]
     for _ in range(num_steps):
