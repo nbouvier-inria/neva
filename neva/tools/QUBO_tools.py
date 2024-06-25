@@ -1,7 +1,7 @@
 import numpy as np
 from math import exp
 
-def QUBO_Value(Q, x):
+def QUBO_Value(Q:np.ndarray, x:np.ndarray)-> int:
     """
     Given a QUBO matrix Q and a unitary vector x,
     returns the value of subset x for problem Q

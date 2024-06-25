@@ -4,7 +4,7 @@ setuptools.setup(
 name="neva",
 version="0.0.0",
 author="Nathan Bouvier",
-description="A software framework for NEVA",
+description="A software framework for NEVA application examples",
 classifiers=[
 "Programming Language :: Python :: 3",
 "License :: MIT",

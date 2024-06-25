@@ -44,5 +44,5 @@ coverage.xml
 docs/_build/
 make.bat
 Makefile
-# Other files
+# Other files to ignore
 outdated/

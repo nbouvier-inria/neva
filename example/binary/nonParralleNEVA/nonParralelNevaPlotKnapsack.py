@@ -17,7 +17,7 @@ from typing import List, Tuple
 """
 Parameters
 """
-pb= "large_scale/knapPI_1_100_1000_1" 
+pb= "large_scale/knapPI_1_1000_1000_1" 
 # Import benchmark instances as a numpy array
 filename = f"../instances_01_KP/{pb}"  
 # Number of individuals
@@ -33,7 +33,7 @@ problem = knap_to_problem(filename=filename) # lambda x : evaluate(sat, x) for s
 # Method for combining solutions
 combination = lambda x, y: combine1(x, y)  
 # Method for mutating
-mutate = lambda x: mutate1(x, k=(1/100)*D) 
+mutate = lambda x: mutate1(x, k=(1/1000)*D) 
 
 num_steps = 500  # Number of steps to run the swarm for
 k = 4  # Max range for waiting time

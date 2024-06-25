@@ -9,7 +9,7 @@ from typing import Dict, List, Tuple
 import time
 
 from neva.tools.QUBO_tools import simulated_annealing, sparse_to_array,  QUBO_Value
-from neva.tools.CGA_tools import torus, mutate1, mutate2, mutate3
+from neva.tools.CGA_tools import torus, mutate1, mutate2, mutate3, ea
 plt.style.use("fivethirtyeight")
 from typing import List, Tuple
 
@@ -21,8 +21,8 @@ pb= "gka4e" # "uf200-06"
 filename = f"../gka_sparse_all/{pb}.sparse"  
 # Set the QUBO problem for Q
 Q = sparse_to_array(filename=filename)  # sat = cnf_to_sat(f"SAT/uf200-860/{pb}.cnf")
-# Number of individuals
-N = 64
+# Number of individuals 
+N = 128
 # Interaction graph
 V, E =  torus(N) # ring_one_way(N)
 # Dimension of the problem
@@ -36,8 +36,10 @@ figname= f"../No_mutation_{pb}_N={N}_D={D}"
 problem = lambda x: QUBO_Value(Q, x) # lambda x : evaluate(sat, x) for sat example
 # Method for combining solutions
 combination = lambda x, y: combine1(x, y)  
+# Proportion of bits to flip
+gamma = 5/100
 # Method for mutating
-mutate = lambda x: mutate1(x, k=(5/100)*D) if not memetic else (mutate1(x, k=np.log(D)) if np.random.random() >= 0.1 else mutate3(x, Q, 1)) 
+mutate = lambda x: mutate1(x, k=gamma*D) if not memetic else (mutate1(x, k=np.log(D)) if np.random.random() >= 0.1 else mutate3(x, Q, 1)) 
 
 num_steps = 200  # Number of steps to run the swarm for
 k = 4  # Max range for waiting time
@@ -69,9 +71,15 @@ if __name__ == "__main__":
     plt.plot([max([d[i][j] for i in V]) for j in range(num_steps)])
     plt.plot([np.average([d[i][j] for i in V]) for j in range(num_steps)])
     plt.plot(simulated_annealing(problem, D, num_steps, lambda x: x, historic=True))
+
+    mu = int(0.1*N)
+    lambda_ = N-mu
+    h = ea(problem=problem, D=D, N=N, num_steps=num_steps, cxpb=0.3, mutpb=0.7, lambda_=lambda_, mu=mu, f0=f0, gamma=gamma)
+    plt.plot(h)
     plt.xlabel("Time steps")
     plt.ylabel("Max(X)|E(F(X))")
     plt.tight_layout()
+    plt.show()
     if memetic is None:
         plt.savefig(figname)
     elif memetic:

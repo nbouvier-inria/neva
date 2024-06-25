@@ -1,5 +1,9 @@
 import numpy as np
 from typing import List, Tuple
+from deap.algorithms import eaSimple, eaMuCommaLambda
+from deap.base import Toolbox, Fitness
+from deap.tools import selTournament, initRepeat, mutFlipBit, cxTwoPoint, HallOfFame, Statistics, cxOnePoint
+from deap import creator
 
 def mutate1(x: np.ndarray, k: int = 1):
     """
@@ -77,10 +81,6 @@ def torus(n: int) -> Tuple[List[int], List[Tuple[int, int]]]:
     return V, E
 
 
-
-
-
-
 def graph_to_N(E, V):
     """
     Returns the non-directed neighbourhood based
@@ -112,3 +112,28 @@ def combine2(x: np.ndarray, y: np.ndarray):
     for i in range(m, x.shape[0]):
         retour[i] = y[i]
     return retour
+
+
+creator.create("FitnessMax", Fitness, weights=(1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMax)
+def ea(problem, D, N, num_steps, cxpb, mutpb, mu, lambda_, f0=lambda x:x, gamma=0.05):
+    t = Toolbox()
+    h = HallOfFame(1)
+    stats = Statistics()
+    def pb(ind):
+        r = problem(ind)
+        return (r,)
+    
+    t.register("evaluate", pb)
+    t.register("mate", cxOnePoint)
+    t.register("mutate", mutFlipBit, indpb=gamma)
+    t.register("select", selTournament, tournsize=6)
+    t.register("individual", lambda : creator.Individual(f0(np.random.random(size=D))))
+    t.register("population", initRepeat, list, t.individual)
+
+    stats.register("max", lambda pop: np.max([p.fitness.values[0] for p in pop]))
+
+    pop = t.population(n=N)
+    pop, log = eaMuCommaLambda(population=pop, stats=stats, toolbox=t, cxpb=cxpb, mutpb=mutpb, ngen=num_steps, halloffame=h, verbose=False, mu=mu, lambda_=lambda_)
+
+    return log.select("max")

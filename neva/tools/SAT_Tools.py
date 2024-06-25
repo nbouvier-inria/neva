@@ -1,8 +1,16 @@
 from pysat.formula import WCNF
 from pysat.examples.fm import FM
 import numpy as np
+from typing import List, Tuple
 
-def cnf_to_sat(filename):
+Clause = Tuple[Tuple[bool, int], Tuple[bool, int], Tuple[bool, int]]
+SAT = List[Clause]
+
+def cnf_to_sat(filename: str) -> SAT:
+    """
+    Given a .cnf file, returns the corresponding 
+    3-SAT problem
+    """
     f = open(filename, "r")
     l = f.readline().split(' ')
     while l[0][0] == "c":
@@ -22,7 +30,11 @@ def cnf_to_sat(filename):
         sat.append(c)
     return sat
 
-def cnf_to_result(filename):
+def cnf_to_result(filename: str) -> np.ndarray:
+    """
+    Given a .cnf file, returns an optimal solution
+    for the 3-SAT optimization problem 
+    """
     f = open(filename, "r")
     l = f.readline().split(' ')
     while l[0][0] == "c":
@@ -37,7 +49,11 @@ def cnf_to_result(filename):
     fm.compute()
     return np.array([i > 0 for i in fm.model])
 
-def evaluate(sat, val):
+def evaluate(sat: SAT, val: np.ndarray) -> int:
+    """
+    Given a 3-SAT problem sat and a valuation val, returns
+    the number clauses that val satisfies
+    """
     tot = 0
     for c in sat:
         (bx, x), (by, y), (bz, z) = c
