@@ -41,7 +41,7 @@ mutate = lambda x: mutate1(x, k=(5/100)*D)
 num_steps = 1000  # Number of steps to run the swarm for
 k = 4  # Max range for waiting time
 max_period = 5  # Period before the particle starts mutating
-f0 = (lambda x: x)  # mutate3(x, Q, 50)                     # Initialisation of positionning
+f0 = (lambda x: x)                   # Initialisation of positionning
 p_err = 0  # Probability of combining even if the rsult will be less
 """
 End of Parameters
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     plt.plot([np.average([d[i][j] for i in V]) for j in range(num_steps)])
     plt.plot(simulated_annealing(problem, D, num_steps, lambda x: x, historic=True))
     plt.xlabel("Time steps")
-    plt.ylabel("Max(X)|E(F(X))")
+    plt.ylabel("Max(F(X))|E(F(X))")
     plt.tight_layout()
     f = f"../graphs/NEVA_Max(X)|E(F(X))_{pb}_N={N}_D={D}"
     plt.savefig(f)

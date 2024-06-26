@@ -41,7 +41,7 @@ def run_spk(k, N, s_c, s_d, tau, t, r, datas, tau_max, Combine, Mutate, f):
         s_c[n] = 0
         s_d[n] = np.zeros(datas[0].shape)
 
-def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: int, k:int=4, max_period:int=5, Combine=combine1, Mutate=mutate1,  probe:bool=False, f0=lambda x:x):
+def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: int, k:int=4, max_period:int=5, Combine=combine1, Mutate=mutate1,  probe:bool=False, f0=lambda x:x, g=None):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -55,6 +55,7 @@ def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: 
     D : Dimensionnality of the problem
     probe : If set to True, CGA_simple now returns all computed datas at all time
     f0 : Array[bool] -> Array[bool] Function applied to the first instance
+    g : Array[bool] -> float Function to use for probing results 
     """
     N = graph_to_N(E, V)
     s_c = [0 for _ in V]
@@ -82,7 +83,7 @@ def nonParrallelNeva(V:List[int], E:List[Tuple[int, int]], f, num_steps:int, D: 
         )
         if probe:
             for i in V:
-                d[i].append(f(datas[i]))
+                d[i].append(f(datas[i]) if g is None else g(datas[i]))
     if probe:
         return d
     else:
