@@ -1,31 +1,31 @@
 from neva.permutation.permutationNonParrallelNeva import nonParrallelNevaPermutation
-from neva.tools.TSP_tools import tsp_compute
+from neva.tools.TSP_tools import tsp_compute, tsp_from_hcp
 from neva.tools.CGA_tools import torus
 import numpy as np
 import time
 import matplotlib.pyplot as plt
 
-G = np.array([[0, 5, 0, 3, 7],
-              [5, 0, 1, 0, 19],
-              [0, 1, 0, 2, 4],
-              [3, 0, 2, 0, 8],
-              [7, 19, 4, 8, 0]], dtype=int)
+# G = np.array([[0, 5, 0, 3, 7],
+#               [5, 0, 1, 0, 19],
+#               [0, 1, 0, 2, 4],
+#               [3, 0, 2, 0, 8],
+#               [7, 19, 4, 8, 0]], dtype=int)
 
-print(tsp_compute(np.array([1,2,3,4,0]), Q=G))
-
+G = tsp_from_hcp("../tsphcp/SSP_1011.hcp")
 
 # Number of individuals
-N = 8
+N = 32
 # Interaction graph
 V, E =  torus(N)
 # Dimension
 D = G.shape[0]
 # Problem to solve
 f = lambda x:-tsp_compute(x, G)
-num_steps = 1000
+num_steps = 100000
 
 if __name__ == "__main__":
     begin = time.time()
+    print("Running...")
     d = nonParrallelNevaPermutation(
         V=V,
         E=E,
@@ -49,4 +49,4 @@ if __name__ == "__main__":
     #     plt.plot(d[i])
     # print(max([problem(d) for d in CGA_simple(V, E, k, max_period=max_period, Combine=combination, Mutate=mutate, f=problem, num_steps=num_steps)]))
     # plt.show()
-    print("Best found solution:", max([v[num_steps - 1] for v in d]))
+    print("Best found solution:", -max([v[num_steps - 1] for v in d]))

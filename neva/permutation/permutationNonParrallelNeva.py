@@ -37,7 +37,9 @@ def run_spk(value, pre, send, C, N, tau, t, data:List[np.ndarray], f, T, time_st
     for n in range(len(N)):
         if C[n] >= D:
             v = f(pre[n])
-            if v >= value[n] or np.exp(-(v-value[n])/T(time_step)) < np.random.random():
+            if v >= value[n] or np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))) > np.random.random():
+                if v < value[n] and n == 0:
+                    print(round(np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))), 4))
                 data[n] = pre[n]
                 value[n] = v
                 tau[n] = 0
@@ -45,7 +47,7 @@ def run_spk(value, pre, send, C, N, tau, t, data:List[np.ndarray], f, T, time_st
             C[n] = 0
 
 
-def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, T= lambda x : 1/x,  probe:bool=False, f0=lambda x:x):
+def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, T= lambda x : 1/(x+1),  probe:bool=False, f0=lambda x:x):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
