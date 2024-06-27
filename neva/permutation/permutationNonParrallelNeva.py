@@ -6,7 +6,7 @@ Algorithm for optimization with matrices
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Dict, List, Tuple
-from neva.tools.CGA_tools import mutate1, combine1, graph_to_N
+from neva.tools.CGA_tools import graph_to_N
 
 plt.style.use("fivethirtyeight")
 from typing import List, Tuple
@@ -14,7 +14,7 @@ from typing import List, Tuple
 
 
 
-def run_spk(value, pre, send, C, N, tau, t, data:List[np.ndarray], f,time_step, T=None ):
+def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, data:List[np.ndarray], f,time_step, T=None ):
     """
     One time step of computation for the NEVA algorithm
     """
@@ -25,6 +25,8 @@ def run_spk(value, pre, send, C, N, tau, t, data:List[np.ndarray], f,time_step, 
                 send[n] = 0
                 tau[n] += np.random.randint(2)
                 t[n] = tau[n]
+                if tau[n] > tau_max:
+                    data[n] = Mutate(data[n])
             else:
                 c = np.where(data[n] == send[n])[0][0]
                 for m in N[n]:
@@ -45,7 +47,7 @@ def run_spk(value, pre, send, C, N, tau, t, data:List[np.ndarray], f,time_step, 
             C[n] = 0
 
 
-def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, T=None,  probe:bool=False, f0=lambda x:x):
+def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, T=None,  probe:bool=False, f0=lambda x:x):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -80,7 +82,9 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
             pre=pre,
             send=send,
             t=t,
-            C=C
+            C=C,
+            tau_max=tau_max,
+            Mutate=Mutate
         )
         if probe:
             for i in V:
