@@ -14,7 +14,7 @@ Parameters
 
 pb= "gka2d"
 # Q = sparse_to_array(f"gka_sparse_all/{pb}.sparse")  # Import benchmark instances as a numpy array
-sat = cnf_to_sat(f"../SAT/uf200-860/uf200-06.cnf")
+sat = cnf_to_sat(f"./benchmarks/SAT/uf200-860/uf200-06.cnf")
 N = 25  # Number of individuals in the population
 V, E =  torus(N) # ring_one_way(N)
 config = "Torus"

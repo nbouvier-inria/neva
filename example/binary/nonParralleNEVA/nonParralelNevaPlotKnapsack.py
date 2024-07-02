@@ -19,7 +19,7 @@ Parameters
 """
 pb= "knapPI_1_1000_1000_1" 
 # Import benchmark instances as a numpy array
-filename = f"../instances_01_KP/large_scale/{pb}"  
+filename = f"./benchmarks/instances_01_KP/large_scale/{pb}"  
 # Number of individuals
 N = 256
 # Interaction graph

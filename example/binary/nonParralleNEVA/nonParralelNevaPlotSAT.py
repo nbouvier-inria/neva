@@ -21,7 +21,7 @@ Parameters
 pb= "uf200-06"
 
 # Import benchmark instances as a numpy array
-sat = cnf_to_sat(f"../SAT/uf200-860/{pb}.cnf")
+sat = cnf_to_sat(f"./benchmarks/SAT/uf200-860/{pb}.cnf")
 # Number of individuals
 N = 64
 # Interaction graph

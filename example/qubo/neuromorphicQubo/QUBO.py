@@ -27,7 +27,7 @@ Parameters
 #           [0, -1, 0, -2, 0],
 #           [-3, 0, -2, 0, 0],
 #           [7, 0, 0, 0, 0]], dtype=int)
-Q = sparse_to_array('../gka_sparse_all/gka5c.sparse') # QUBO matrix to solve
+Q = sparse_to_array('./benchmarks/gka_sparse_all/gka5c.sparse') # QUBO matrix to solve
 N = Q.shape[0]  # Number of neurons = dimension of the problem
 dv = 0.1        # Inverse of decay time-constant for voltage decay.
 vth = 5         # Neuron threshold voltage, exceeding which, the neuron will spike.

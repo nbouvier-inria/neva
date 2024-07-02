@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 #               [3, 0, 2, 0, 8],
 #               [7, 19, 4, 8, 0]], dtype=int)
 
-G = tsp_from_atsp("../ALL_atsp/rbg403.atsp")
+G = tsp_from_atsp("./benchmarks/ALL_atsp/rbg403.atsp")
 
 # Number of individuals
 N = 256

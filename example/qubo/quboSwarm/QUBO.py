@@ -41,7 +41,7 @@ List of parameters
 """
 
 # QUBO problem to solve
-Q = sparse_to_array('../gka_sparse_all/gka3f.sparse')
+Q = sparse_to_array('./benchmarks/gka_sparse_all/gka3f.sparse')
 N = Q.shape[0]
 
 # Number of steps computed on the SNNs

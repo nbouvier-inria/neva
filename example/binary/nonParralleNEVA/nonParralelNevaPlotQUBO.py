@@ -18,7 +18,7 @@ Parameters
 """
 pb= "gka4e" # "uf200-06"
 # Import benchmark instances as a numpy array
-filename = f"../gka_sparse_all/{pb}.sparse"  
+filename = f"./benchmarks/gka_sparse_all/{pb}.sparse"  
 # Set the QUBO problem for Q
 Q = sparse_to_array(filename=filename)  # sat = cnf_to_sat(f"SAT/uf200-860/{pb}.cnf")
 # Number of individuals 

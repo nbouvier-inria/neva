@@ -14,7 +14,7 @@ Parameters
 """
 
 pb= "large_scale/knapPI_1_100_1000_1" 
-filename = f"../instances_01_KP/{pb}"  
+filename = f"./benchmarks/instances_01_KP/{pb}"  
 N = 24 # Number of individuals, must be even
 V, E =  torus(N) # ring_one_way(N)
 config = "Torus"

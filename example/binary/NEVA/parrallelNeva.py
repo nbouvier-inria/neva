@@ -28,7 +28,7 @@ plt.style.use("fivethirtyeight")
 Parameters
 """
 
-Q = sparse_to_array('../gka_sparse_all/gka4e.sparse') # QUBO matrix
+Q = sparse_to_array('./benchmarks/gka_sparse_all/gka4e.sparse') # QUBO matrix
 N = 16
 V, E = torus(N)
 probe = 0
