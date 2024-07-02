@@ -1,3 +1,6 @@
+"""
+NEVA algorithm applied to permutations.
+"""
 from neva.permutation.permutationNonParrallelNeva import nonParrallelNevaPermutation
 from neva.tools.TSP_tools import tsp_compute, tsp_from_hcp, tsp_from_atsp, mutate1
 from neva.tools.CGA_tools import torus, ring_one_way
@@ -11,19 +14,19 @@ import matplotlib.pyplot as plt
 #               [3, 0, 2, 0, 8],
 #               [7, 19, 4, 8, 0]], dtype=int)
 
-G = tsp_from_atsp("../ALL_atsp/ft53.atsp")
+G = tsp_from_atsp("../ALL_atsp/rbg403.atsp")
 
 # Number of individuals
-N = 25
+N = 256
 # Interaction graph
-V, E =  ring_one_way(N)
+V, E =  torus(N)
 # Dimension
 D = G.shape[0]
 # Problem to solve
 f = lambda x:-tsp_compute(x, G)
-num_steps = 1000
+num_steps = 200000
 mutate = mutate1
-tau_max=0
+tau_max=15
 
 if __name__ == "__main__":
     begin = time.time()
@@ -35,7 +38,6 @@ if __name__ == "__main__":
         f=f,
         num_steps=num_steps,
         probe=True,
-        T=lambda x:1/np.sqrt(x+1),
         tau_max=tau_max,
         Mutate=mutate
     )

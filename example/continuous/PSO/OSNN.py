@@ -32,7 +32,7 @@ from neva.continuous.PSO import PSO
 Parameters
 """
 N = 10                                                      # Number of particles in the swarm
-D = 7                                                       # Problem's dimension
+D = 20                                                       # Problem's dimension
 x0 = np.array([(np.random.random()-0.5)*2 for i in range(D)])
 f = lambda x: -weierstrass(x, x0)                           # Function to maximise
 name = "Weierstrass"                                # Figure name for saving

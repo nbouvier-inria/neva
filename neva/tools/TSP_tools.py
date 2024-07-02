@@ -35,9 +35,9 @@ def tsp_from_atsp(filename):
         m = [a.strip(':') for a in mat.readline().strip('\n').split()]
     Q = []
     m = [int(i) for i in m]
+    k = 0
     for i in range(D):
         L = []
-        k = 0
         for j in range(D):
             if k < len(m):
                 L.append(m[k])

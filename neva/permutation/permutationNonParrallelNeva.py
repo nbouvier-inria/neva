@@ -23,10 +23,11 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, data:List[np.ndarra
         if t[n] <= 0:
             if send[n] >= D:
                 send[n] = 0
-                tau[n] += np.random.randint(2)
+                tau[n] += np.random.randint(D)
                 t[n] = tau[n]
-                if tau[n] > tau_max:
+                if tau[n] > tau_max*D:
                     data[n] = Mutate(data[n])
+                    tau[n] = np.random.randint(D)
             else:
                 c = np.where(data[n] == send[n])[0][0]
                 for m in N[n]:
@@ -38,11 +39,13 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, data:List[np.ndarra
             t[n] -= 1
     for n in range(len(N)):
         if C[n] >= D:
+            # if n == 0:
+            #     print(pre[n])
             v = f(pre[n])
             if v >= value[n] or (np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))) > np.random.random() if T is not None else False):
                 data[n] = pre[n]
                 value[n] = v
-                tau[n] = 0
+                tau[n] = np.random.randint(D)
             pre[n] = np.array([None for _ in range(D)])
             C[n] = 0
 
