@@ -14,20 +14,22 @@ from typing import List, Tuple
 
 
 
-def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, data:List[np.ndarray], f,time_step, T=None ):
+def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[np.ndarray], f,time_step, T=None ):
     """
     One time step of computation for the NEVA algorithm
     """
     D = data[0].shape[0]
-    for n in np.random.permutation(len(N)):
+    for n in range(len(N)): # np.random.permutation(len(N)):
         if t[n] <= 0:
             if send[n] >= D:
                 send[n] = 0
-                tau[n] += np.random.randint(D)
+                # tau[n] += np.random.randint(D)
                 t[n] = tau[n]
-                if tau[n] > tau_max*D:
-                    data[n] = Mutate(data[n])
-                    tau[n] = np.random.randint(D)
+                # if tau[n] > tau_max*D:
+                #     temp = Mutate(data[n])
+                #     if f(temp) >= value[n]:
+                #         data[n] = temp.copy()
+                #         tau[n] = np.random.randint(D)
             else:
                 c = np.where(data[n] == send[n])[0][0]
                 for m in N[n]:
@@ -41,16 +43,17 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, data:List[np.ndarra
         if C[n] >= D:
             # if n == 0:
             #     print(pre[n])
+            pre[n] = Mutate(Combine(pre[n], data[n]))
             v = f(pre[n])
-            if v >= value[n] or (np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))) > np.random.random() if T is not None else False):
-                data[n] = pre[n]
+            if v >= value[n]: # or (np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))) > np.random.random() if T is not None else False):
+                data[n] = pre[n].copy()
                 value[n] = v
                 tau[n] = np.random.randint(D)
             pre[n] = np.array([None for _ in range(D)])
             C[n] = 0
 
 
-def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, T=None,  probe:bool=False, f0=lambda x:x):
+def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, Combine=(lambda x, y:x), T=None,  probe:bool=False, f0=lambda x:x):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -63,6 +66,7 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
     probe : If set to True, CGA_simple now returns all computed datas at all time
     f0 : Array[bool] -> Array[bool] Function applied to the first instance
     """
+    maxi = -float("inf")
     N = graph_to_N(E, V)
     datas = [f0(np.random.permutation(D)) for _ in V]
     value = [f(d) for d in datas]
@@ -87,11 +91,16 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
             t=t,
             C=C,
             tau_max=tau_max,
-            Mutate=Mutate
+            Mutate=Mutate,
+            Combine=Combine
         )
         if probe:
             for i in V:
-                d[i].append(f(datas[i]))
+                temp = f(datas[i])
+                d[i].append(temp)
+                if temp > maxi:
+                    maxi = temp
+                    print(f"New maximum of value {maxi} found !")
     if probe:
         return d
     else:

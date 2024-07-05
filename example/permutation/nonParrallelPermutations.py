@@ -2,7 +2,7 @@
 NEVA algorithm applied to permutations.
 """
 from neva.permutation.permutationNonParrallelNeva import nonParrallelNevaPermutation
-from neva.tools.TSP_tools import tsp_compute, tsp_from_hcp, tsp_from_atsp, mutate1
+from neva.tools.TSP_tools import tsp_compute, tsp_from_hcp, tsp_from_atsp, mutate1, pmx, tsp_from_tsp
 from neva.tools.CGA_tools import torus, ring_one_way
 import numpy as np
 import time
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 #               [3, 0, 2, 0, 8],
 #               [7, 19, 4, 8, 0]], dtype=int)
 
-G = tsp_from_atsp("./benchmarks/ALL_atsp/rbg403.atsp")
+G = tsp_from_tsp("./benchmarks/ALL_tsp/att48.tsp")
 
 # Number of individuals
 N = 256
@@ -24,9 +24,9 @@ V, E =  torus(N)
 D = G.shape[0]
 # Problem to solve
 f = lambda x:-tsp_compute(x, G)
-num_steps = 200000
+num_steps = 1500
 mutate = mutate1
-tau_max=15
+tau_max=1
 
 if __name__ == "__main__":
     begin = time.time()
@@ -39,12 +39,15 @@ if __name__ == "__main__":
         num_steps=num_steps,
         probe=True,
         tau_max=tau_max,
-        Mutate=mutate
+        Mutate=mutate,
+        Combine=pmx
     )
     end = time.time()
     print("Computation time : ", round(end-begin, 3) , "s")
     plt.figure(figsize=(10, 8))
     plt.plot([-max([d[i][j] for i in V]) for j in range(num_steps)])
+    # for i  in V:
+    #     plt.plot([-d[i][j] for j in range(num_steps)])
     plt.plot([-np.average([d[i][j] for i in V]) for j in range(num_steps)])
     plt.xlabel("Time steps")
     plt.ylabel("Min(f(x))|E(f(x))")

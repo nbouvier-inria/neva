@@ -29,7 +29,7 @@ def tsp_from_atsp(filename):
     mat = open(filename, "r")
     m = [a.strip(':') for a in mat.readline().strip('\n').split()]
     while m[0] in ["NAME", "COMMENT", "DIMENSION", "TYPE", "EDGE_DATA_FORMAT", "EDGE_LIST",
-"EDGE_DATA_SECTION", "EDGE_WEIGHT_TYPE", "EDGE_WEIGHT_FORMAT", "EDGE_WEIGHT_SECTION"]:
+"EDGE_DATA_SECTION", "EDGE_WEIGHT_TYPE", "EDGE_WEIGHT_FORMAT", "EDGE_WEIGHT_SECTION", "NODE_COORD_SECTION"]:
         if m[0] == "DIMENSION":
             D = int(m[len(m)-1])
         m = [a.strip(':') for a in mat.readline().strip('\n').split()]
@@ -58,3 +58,43 @@ def mutate1(x: np.ndarray):
     x[i] = x[j]
     x[j] = temp
     return x
+
+import numpy as np
+
+def pmx(parent1, parent2):
+    # Select two random crossover points
+    crossover_points = np.random.choice(range(1, len(parent1)), 2, replace=False)
+    crossover_points.sort()
+
+    # Create offspring
+    offspring = np.full(len(parent1), np.nan)
+
+    # Copy the segments between the crossover points from the parents
+    offspring[crossover_points[0]:crossover_points[1]] = parent1[crossover_points[0]:crossover_points[1]]
+
+    # Map the remaining elements
+    for i in range(len(parent1)):
+        if np.isnan(offspring[i]):
+            val = parent2[i]
+            while np.isin(val, offspring):
+                val = parent1[np.where(parent2 == val)][0]
+            offspring[i] = val
+
+    return offspring.astype(int)
+
+def tsp_from_tsp(filename):
+    mat = open(filename, "r")
+    m = [a.strip(':') for a in mat.readline().strip('\n').split()]
+    while m[0] in ["NAME", "COMMENT", "DIMENSION", "TYPE", "EDGE_DATA_FORMAT", "EDGE_LIST",
+"EDGE_DATA_SECTION", "EDGE_WEIGHT_TYPE", "EDGE_WEIGHT_FORMAT", "EDGE_WEIGHT_SECTION", "NODE_COORD_SECTION"]:
+        if m[0] == "DIMENSION":
+            D = int(m[len(m)-1])
+        m = [a.strip(':') for a in mat.readline().strip('\n').split()]
+    Q = []
+    m = [int(i) for i in m]
+    for _ in range(D):
+        i, j, q = [int(i) for i in mat.readline().split(' ')]
+        Q[i - 1, j - 1] = q
+        Q[j - 1, i - 1] = q
+    Q = np.array(Q)
+    return Q
