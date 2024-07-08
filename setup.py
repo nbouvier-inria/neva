@@ -20,6 +20,8 @@ install_requires=[
 "lava-nc",
 "python-sat",
 "matplotlib",
+"networkx",
+"tsplib95"
 ],
 python_requires=">=3.8.0",
 )

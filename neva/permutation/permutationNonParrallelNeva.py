@@ -14,7 +14,7 @@ from typing import List, Tuple
 
 
 
-def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[np.ndarray], f,time_step, T=None ):
+def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[np.ndarray], f,time_step, T=None, Meme=None):
     """
     One time step of computation for the NEVA algorithm
     """
@@ -23,7 +23,7 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
         if t[n] <= 0:
             if send[n] >= D:
                 send[n] = 0
-                # tau[n] += np.random.randint(D)
+                tau[n] += np.random.randint(D)
                 t[n] = tau[n]
                 # if tau[n] > tau_max*D:
                 #     temp = Mutate(data[n])
@@ -43,6 +43,8 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
         if C[n] >= D:
             # if n == 0:
             #     print(pre[n])
+            if np.random.random() < 0.5:
+                pre[n] = Meme(pre[n][:np.random.randint(D)])
             pre[n] = Mutate(Combine(pre[n], data[n]))
             v = f(pre[n])
             if v >= value[n]: # or (np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))) > np.random.random() if T is not None else False):
@@ -53,7 +55,7 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
             C[n] = 0
 
 
-def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, Combine=(lambda x, y:x), T=None,  probe:bool=False, f0=lambda x:x):
+def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, Combine=(lambda x, y:x), T=None,  probe:bool=False, f0=lambda x:x, Meme=None):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -92,7 +94,8 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
             C=C,
             tau_max=tau_max,
             Mutate=Mutate,
-            Combine=Combine
+            Combine=Combine,
+            Meme=Meme
         )
         if probe:
             for i in V:
@@ -101,6 +104,8 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
                 if temp > maxi:
                     maxi = temp
                     print(f"New maximum of value {maxi} found !")
+        else:
+            print(f"Steps done = {step+1}/{num_steps}")
     if probe:
         return d
     else:
