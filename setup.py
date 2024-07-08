@@ -21,7 +21,8 @@ install_requires=[
 "python-sat",
 "matplotlib",
 "networkx",
-"tsplib95"
+"tsplib95",
+"tqdm"
 ],
 python_requires=">=3.8.0",
 )

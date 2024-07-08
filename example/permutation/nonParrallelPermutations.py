@@ -14,25 +14,29 @@ import matplotlib.pyplot as plt
 #               [3, 0, 2, 0, 8],
 #               [7, 19, 4, 8, 0]], dtype=int)
 
-file = "./benchmarks/ALL_tsp/att48.tsp"
+file = "./benchmarks/ALL_tsp/burma14.tsp"
+print("Loading graph")
 G = tsp_from_tsp(file)
+print("Graph loaded")
 
 
 # Number of individuals
-N = 256
+N = 4
 # Interaction graph
 V, E =  torus(N)
 # Dimension
 D = G.shape[0]
 # Problem to solve
-f = lambda x:-tsp_compute(x, G)
+f = lambda x: -tsp_compute(x, G)
 # Memetic approach
 meme = lambda x: greedy(x, G)
+p_meme = 0.1
 # Number of generations
-num_steps = 20000
+num_steps = 5000
 # Mutate function
 mutate = mutate1
-tau_max=1
+# Maximum delay between each exchange, relative to D
+tau_max = 3
 # Graph set to true if a visual result is needed
 graph = True
 
@@ -49,7 +53,8 @@ if __name__ == "__main__":
         tau_max=tau_max,
         Mutate=mutate,
         Combine=pmx,
-        Meme=meme
+        Meme=meme,
+        p_meme=p_meme
     )
     end = time.time()
     print("Computation time : ", round(end-begin, 3) , "s")
@@ -62,7 +67,7 @@ if __name__ == "__main__":
         plt.xlabel("Time steps")
         plt.ylabel("Min(f(x))|E(f(x))")
         plt.tight_layout()
-        f = f"../graphs/NEVA_permutation"
+        f = f"../graphs/permutNEVA"
         plt.show()
         plt.savefig(f)
         print(f"Figure saved at {f}")

@@ -92,7 +92,7 @@ def tsp_from_tsp(filename):
     graph = problem.get_graph()
 
     # convert into a numpy distance matrix
-    Q = networkx.to_numpy_matrix(graph)
+    Q = nx.to_numpy_matrix(graph)
     return Q
 
 def greedy(initial, Q: np.ndarray):
@@ -122,14 +122,13 @@ def plot_TSP(tour, filename):
     plt.title("TSP solution")
     plt.axis("off")
     pos = {i:problem.get_display(i) for i in problem.get_nodes()}
-    print(pos)
-    plt.plot([pos[tour[i]+1][0] for i in range(len(tour)-1)]+[pos[tour[0]+1][0]],
-             [pos[tour[i]+1][1] for i in range(len(tour)-1)]+[pos[tour[0]+1][1]],
+    plt.plot([pos[tour[i]+1][0] for i in range(len(tour))]+[pos[tour[0]+1][0]],
+             [pos[tour[i]+1][1] for i in range(len(tour))]+[pos[tour[0]+1][1]],
              color="blue", linewidth=3)
     nx.draw_networkx_nodes(graph, pos=pos, node_color="red", node_size
-                           = 1000, edgecolors="black")
+                           = 100, edgecolors="black")
     # nx.draw_networkx_edges(graph, pos=pos, edge_color="black")
-    nx.draw_networkx_labels(graph, pos=pos, font_size=20)
+    nx.draw_networkx_labels(graph, pos=pos, font_size=5)
     plt.savefig("../graphs/tsp.png")
     print("Figure saved at ../graphs/tsp.png")
     plt.show()

@@ -10,11 +10,12 @@ from neva.tools.CGA_tools import graph_to_N
 
 plt.style.use("fivethirtyeight")
 from typing import List, Tuple
+from tqdm import tqdm
 
 
 
 
-def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[np.ndarray], f,time_step, T=None, Meme=None):
+def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[np.ndarray], f,time_step, T=None, Meme=None, p_meme=1):
     """
     One time step of computation for the NEVA algorithm
     """
@@ -23,7 +24,10 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
         if t[n] <= 0:
             if send[n] >= D:
                 send[n] = 0
-                tau[n] += np.random.randint(D)
+                if tau[n] < 2*tau_max*D:
+                    tau[n] += np.random.randint(2*D)
+                else:
+                    tau[n] = max(np.random.randint(2*D), tau[n]-np.random.randint(2*D))
                 t[n] = tau[n]
                 # if tau[n] > tau_max*D:
                 #     temp = Mutate(data[n])
@@ -43,7 +47,7 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
         if C[n] >= D:
             # if n == 0:
             #     print(pre[n])
-            if np.random.random() < 0.5:
+            if np.random.random() < p_meme:
                 pre[n] = Meme(pre[n][:np.random.randint(D)])
             pre[n] = Mutate(Combine(pre[n], data[n]))
             v = f(pre[n])
@@ -55,7 +59,7 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
             C[n] = 0
 
 
-def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, Combine=(lambda x, y:x), T=None,  probe:bool=False, f0=lambda x:x, Meme=None):
+def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_steps:int, tau_max, Mutate, Combine=(lambda x, y:x), T=None,  probe:bool=False, f0=lambda x:x, Meme=None, p_meme=1):
     """
     Computes the NEVA algorithm ending datas in an array through regular matrices
     ------------------
@@ -79,7 +83,7 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
     C = [0 for _ in V]
     if probe:
         d = [[] for _ in V]
-    for step in range(num_steps):
+    for step in tqdm(range(num_steps)):
         run_spk(
             T=T,
             N=N,
@@ -95,7 +99,8 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
             tau_max=tau_max,
             Mutate=Mutate,
             Combine=Combine,
-            Meme=Meme
+            Meme=Meme,
+            p_meme=p_meme
         )
         if probe:
             for i in V:
@@ -103,9 +108,7 @@ def nonParrallelNevaPermutation(V:List[int], E:List[Tuple[int, int]], D, f, num_
                 d[i].append(temp)
                 if temp > maxi:
                     maxi = temp
-                    print(f"New maximum of value {maxi} found !")
-        else:
-            print(f"Steps done = {step+1}/{num_steps}")
+                    # print(f"New maximum of value {maxi} found !")
     if probe:
         return d
     else:
