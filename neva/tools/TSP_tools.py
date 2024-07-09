@@ -3,6 +3,8 @@ import tsplib95
 import networkx
 import matplotlib.pyplot as plt
 import networkx as nx
+import matplotlib as mpl
+
 
 def tsp_compute(x:np.ndarray, Q:np.ndarray):
     tot = 0
@@ -116,19 +118,39 @@ def greedy(initial, Q: np.ndarray):
 def plot_TSP(tour, filename):
     """ Plot the TSP solution given a TSPLIB
     filename and a tour """
+    
     problem = tsplib95.load(filename)
     graph = problem.get_graph()
     plt.figure(figsize=(10, 10))
-    plt.title("TSP solution")
-    plt.axis("off")
-    pos = {i:problem.get_display(i) for i in problem.get_nodes()}
-    plt.plot([pos[tour[i]+1][0] for i in range(len(tour))]+[pos[tour[0]+1][0]],
-             [pos[tour[i]+1][1] for i in range(len(tour))]+[pos[tour[0]+1][1]],
-             color="blue", linewidth=3)
-    nx.draw_networkx_nodes(graph, pos=pos, node_color="red", node_size
-                           = 100, edgecolors="black")
-    # nx.draw_networkx_edges(graph, pos=pos, edge_color="black")
-    nx.draw_networkx_labels(graph, pos=pos, font_size=5)
+    if isinstance(tour, list):
+        cmap = mpl.colormaps['coolwarm']
+        colors = cmap(np.linspace(0, 1, len(tour)))
+        k = 0
+        for t in tour:
+            plt.clf()
+            plt.title("TSP solution")
+            plt.axis("off")
+            pos = {i:problem.get_display(i) for i in problem.get_nodes()}
+            plt.plot([pos[t[i]+1][0] for i in range(len(t))]+[pos[t[0]+1][0]],
+                    [pos[t[i]+1][1] for i in range(len(t))]+[pos[t[0]+1][1]],
+                    c=colors[k], linewidth=3)
+            nx.draw_networkx_nodes(graph, pos=pos, node_color="red", node_size
+                                = 100, edgecolors="black")
+            # nx.draw_networkx_edges(graph, pos=pos, edge_color="black")
+            nx.draw_networkx_labels(graph, pos=pos, font_size=5)
+            plt.pause(0.5)
+            k +=1
+    else:
+        plt.title("TSP solution")
+        plt.axis("off")
+        pos = {i:problem.get_display(i) for i in problem.get_nodes()}
+        plt.plot([pos[tour[i]+1][0] for i in range(len(tour))]+[pos[tour[0]+1][0]],
+                [pos[tour[i]+1][1] for i in range(len(tour))]+[pos[tour[0]+1][1]],
+                color="blue", linewidth=3)
+        nx.draw_networkx_nodes(graph, pos=pos, node_color="red", node_size
+                            = 100, edgecolors="black")
+        # nx.draw_networkx_edges(graph, pos=pos, edge_color="black")
+        nx.draw_networkx_labels(graph, pos=pos, font_size=5)
     plt.savefig("../graphs/tsp.png")
     print("Figure saved at ../graphs/tsp.png")
     plt.show()

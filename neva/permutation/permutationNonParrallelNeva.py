@@ -49,7 +49,9 @@ def run_spk(value, pre, send, C, N, tau, tau_max, t, Mutate, Combine, data:List[
             #     print(pre[n])
             if np.random.random() < p_meme:
                 pre[n] = Meme(pre[n][:np.random.randint(D)])
-            pre[n] = Mutate(Combine(pre[n], data[n]))
+            pre[n] = Combine(pre[n], data[n])
+            if np.random.random() < 0.5:
+                pre[n] = Mutate(pre[n])
             v = f(pre[n])
             if v >= value[n]: # or (np.exp(-(value[n]-v)/(T(time_step)*abs(value[n]))) > np.random.random() if T is not None else False):
                 data[n] = pre[n].copy()

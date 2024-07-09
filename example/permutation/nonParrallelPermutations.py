@@ -8,20 +8,21 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 
+
 # G = np.array([[0, 5, 0, 3, 7],
 #               [5, 0, 1, 0, 19],
 #               [0, 1, 0, 2, 4],
 #               [3, 0, 2, 0, 8],
 #               [7, 19, 4, 8, 0]], dtype=int)
 
-file = "./benchmarks/ALL_tsp/burma14.tsp"
+file = "./benchmarks/ALL_tsp/bier127.tsp"
 print("Loading graph")
 G = tsp_from_tsp(file)
 print("Graph loaded")
 
 
 # Number of individuals
-N = 4
+N = 64
 # Interaction graph
 V, E =  torus(N)
 # Dimension
@@ -31,10 +32,12 @@ f = lambda x: -tsp_compute(x, G)
 # Memetic approach
 meme = lambda x: greedy(x, G)
 p_meme = 0.1
-# Number of generations
-num_steps = 5000
+# Number of "generations"
+num_steps = 500
 # Mutate function
 mutate = mutate1
+# Crossover function
+combine = pmx
 # Maximum delay between each exchange, relative to D
 tau_max = 3
 # Graph set to true if a visual result is needed
@@ -52,7 +55,7 @@ if __name__ == "__main__":
         probe=(not graph),
         tau_max=tau_max,
         Mutate=mutate,
-        Combine=pmx,
+        Combine=combine,
         Meme=meme,
         p_meme=p_meme
     )
@@ -75,7 +78,8 @@ if __name__ == "__main__":
     else:
         best = d[np.argmin([-f(x) for x in d])]
         print("Best found solution:", -f(best))
-        plot_TSP(tour=best, filename=file)
+        d.sort(key=f)
+        plot_TSP(tour=d, filename=file)
     # for i in V:
     #     plt.plot(d[i])
     # print(max([problem(d) for d in CGA_simple(V, E, k, max_period=max_period, Combine=combination, Mutate=mutate, f=problem, num_steps=num_steps)]))
