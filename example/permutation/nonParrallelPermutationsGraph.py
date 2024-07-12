@@ -1,5 +1,7 @@
 """
 NEVA algorithm applied to permutations.
+This example shows the evolution of best
+and average solution during the optimization
 """
 from neva.permutation.permutationNonParrallelNeva import nonParrallelNevaPermutation
 from neva.tools.TSP_tools import tsp_compute, tsp_from_hcp, tsp_from_atsp, mutate1, pmx, tsp_from_tsp, greedy, plot_TSP
@@ -31,9 +33,9 @@ D = G.shape[0]
 f = lambda x: -tsp_compute(x, G)
 # Memetic approach
 meme = lambda x: greedy(x, G)
-p_meme = 0.1
+p_meme = 1
 # Number of "generations"
-num_steps = 500
+num_steps = 500000
 # Mutate function
 mutate = mutate1
 # Crossover function
@@ -41,7 +43,7 @@ combine = pmx
 # Maximum delay between each exchange, relative to D
 tau_max = 3
 # Graph set to true if a visual result is needed
-graph = True
+graph = False
 
 if __name__ == "__main__":
     begin = time.time()
